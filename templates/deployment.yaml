@@ -1,0 +1,33 @@
+{{ $count := (.Values.numberOfDeployments | int) }}
+{{- range $i, $v := until $count }}
+{{- with $ -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ include "cluster-flooder.fullname" . }}-{{ $i }}"
+  labels:
+    serviceSelector: "floood"
+spec:
+  selector:
+    matchLabels:
+      {{- include "cluster-flooder.selectorLabels" . | nindent 6 }}
+      serviceSelector: "floood"
+  template:
+    metadata:
+      labels:
+        {{- include "cluster-flooder.selectorLabels" . | nindent 8 }}
+        serviceSelector: "floood"
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+      nodeSelector:
+        clusterflooder: "true"
+---
+{{- end }}
+{{- end }}

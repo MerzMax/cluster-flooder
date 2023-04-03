@@ -1,0 +1,21 @@
+{{ $count := (.Values.numberOfServices | int) }}
+{{- range $i, $v := until $count }}
+{{- with $ -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ include "cluster-flooder.fullname" . }}-{{ $i }}"
+  labels:
+    {{- include "cluster-flooder.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    serviceSelector: "floood"
+---
+{{- end }}
+{{- end }}
